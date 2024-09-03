@@ -1,0 +1,63 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: montage-func
+  namespace: default
+  labels:
+    boson.dev/function: "true"
+    function.knative.dev/name: montage-func
+    function.knative.dev/runtime: python
+  annotations:
+    dapr.io/app-id: montage-func
+    dapr.io/app-port: "8080"
+    dapr.io/enable-api-logging: "true"
+    dapr.io/enabled: "true"
+    dapr.io/metrics-port: "9092"
+spec:
+  template:
+    metadata:
+      annotations:
+        dapr.io/app-id: montage-func
+        dapr.io/app-port: "8080"
+        dapr.io/enable-api-logging: "true"
+        dapr.io/enabled: "true"
+        dapr.io/metrics-port: "9092"
+        autoscaling.knative.dev/min-scale: "1"
+    spec:
+      containers:
+      - name: user-container
+        image: guswns531/montage-func:v2
+        env:
+        - name: ADDRESS
+          value: 0.0.0.0
+        livenessProbe:
+          httpGet:
+            path: /health/liveness
+            port: 0
+        readinessProbe:
+          httpGet:
+            path: /health/readiness
+            port: 0
+          successThreshold: 1
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - name: data-volume
+          mountPath: /mnt/data
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: montage-func-pvc
+      containerConcurrency: 1
+      enableServiceLinks: false
+      timeoutSeconds: 1200
+      responseStartTimeoutSeconds: 10000
+  traffic:
+  - latestRevision: true
+    percent: 100

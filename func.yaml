@@ -1,0 +1,12 @@
+specVersion: 0.36.0
+name: montage-func
+runtime: python
+registry: guswns531
+image: guswns531/montage-func
+namespace: default
+created: 2024-08-29T01:46:57.704750947+09:00
+build:
+  builder: pack
+deploy:
+  namespace: default
+  image: guswns531/montage-func
